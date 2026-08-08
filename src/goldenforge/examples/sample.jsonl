@@ -1,3 +1,0 @@
-{"id":"trace_001","input":"How do I cancel my subscription?","output":"You can cancel your subscription from Settings > Billing.","feedback":"negative","model":"example-model"}
-{"id":"trace_002","input":"How can I get a refund?","output":"Please contact support to request a refund.","feedback":"positive","model":"example-model"}
-{"id":"trace_003","input":"I forgot my password.","output":"Use the password reset link on the login page.","feedback":"positive","model":"example-model"}
