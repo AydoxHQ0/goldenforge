@@ -44,7 +44,7 @@ def test_build_command(monkeypatch, tmp_path):
         exported["path"] = path
 
     monkeypatch.setattr(
-        "goldenforge.cli.build_pipeline_from_json",
+        "goldenforge.cli.build_pipeline_from_jsonl",
         fake_build_pipeline,
     )
 
