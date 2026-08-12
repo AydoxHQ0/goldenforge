@@ -52,3 +52,26 @@ def test_select_traces_handles_empty_input():
     selected = select_traces([])
 
     assert selected == []
+
+def test_select_traces_ranks_by_selection_score():
+    low_value = Trace(
+        id="trace_005",
+        input="Question",
+        output="Wrong answer",
+        feedback="negative",
+    )
+
+    high_value = Trace(
+        id="trace_006",
+        input="Complex question",
+        output="Wrong answer",
+        feedback="negative",
+        evaluation={"correct": False},
+        context={"documents": ["doc1"]},
+        tools=[{"name": "search"}],
+        metadata={"source": "production"},
+    )
+
+    selected = select_traces([low_value, high_value])
+
+    assert selected == [high_value, low_value]
