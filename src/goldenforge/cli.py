@@ -4,11 +4,7 @@ import typer
 from rich.console import Console
 
 from goldenforge.dataset.export import export_json
-from goldenforge.dataset.golden import build_golden_dataset
-from goldenforge.ingest.jsonl import load_jsonl
-from goldenforge.normalize.basic import normalize_trace
-from goldenforge.select.basic import select_traces
-from goldenforge.validate.basic import validate_trace
+from goldenforge.pipeline.basic import build_pipeline_from_json
 
 
 app = typer.Typer(
@@ -33,37 +29,29 @@ def hello():
 
 @app.command()
 def build(
-    input_path: Path,
-    output_path: Path,
+    input_path: Path = typer.Argument(
+        ...,
+        help="Path to the input JSONL trace file.",
+        exists=True,
+        readable=True,
+    ),
+    output_path: Path = typer.Argument(
+        ...,
+        help="Path where the Golden Dataset JSON will be written.",
+    ),
 ):
     """Build a Golden Dataset from a JSONL trace file."""
 
-    traces = list(load_jsonl(input_path))
+    dataset = build_pipeline_from_json(input_path)
 
-    normalized = [
-        normalize_trace(trace)
-        for trace in traces
-    ]
-
-    valid = [
-        trace
-        for trace in normalized
-        if not validate_trace(trace)
-    ]
-
-    selected = select_traces(valid)
-
-    dataset = build_golden_dataset(selected)
-
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     export_json(dataset, output_path)
 
     console.print(
-        f"Processed {len(traces)} traces → "
-        f"{len(selected)} selected → "
-        f"{len(dataset)} Golden Dataset examples."
+        f"[green]Golden Dataset created successfully.[/green]\n"
+        f"Examples: {len(dataset)}\n"
+        f"Exported to: {output_path}"
     )
-
-    console.print(f"Exported to: {output_path}")
 
 
 if __name__ == "__main__":
