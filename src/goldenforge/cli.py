@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 
 from goldenforge.dataset.export import export_json
-from goldenforge.pipeline.basic import build_pipeline_from_json
+from goldenforge.pipeline.basic import build_pipeline_from_jsonl
 
 
 app = typer.Typer(
@@ -42,7 +42,7 @@ def build(
 ):
     """Build a Golden Dataset from a JSONL trace file."""
 
-    dataset = build_pipeline_from_json(input_path)
+dataset = build_pipeline_from_jsonl(input_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     export_json(dataset, output_path)
