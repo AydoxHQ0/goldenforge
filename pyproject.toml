@@ -8,17 +8,44 @@ version = "0.1.0"
 description = "Transform production AI traces into high-quality Golden Datasets."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Apache-2.0" }
+license = { text = "MIT" }
 
 authors = [
-    { name = "Ayoub Douibi" }
+    { name = "AydoxHQ" }
 ]
 
 dependencies = [
     "typer>=0.16.0",
     "rich>=14.0.0",
-    "pydantic>=2.0.0"
+    "pydantic>=2.0.0",
 ]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Testing",
+]
+
+keywords = [
+    "ai",
+    "llm",
+    "evaluation",
+    "datasets",
+    "golden-dataset",
+    "traces",
+    "machine-learning"
+]
+
+[project.urls]
+Homepage = "https://github.com/AydoxHQ0/goldenforge"
+Repository = "https://github.com/AydoxHQ0/goldenforge"
+Issues = "https://github.com/AydoxHQ0/goldenforge/issues"
 
 [project.scripts]
 goldenforge = "goldenforge.cli:app"
