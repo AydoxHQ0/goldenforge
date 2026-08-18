@@ -19,3 +19,12 @@ class Trace(BaseModel):
     tools: list[dict[str, Any]] = Field(default_factory=list)
     context: dict[str, Any] = Field(default_factory=dict)
     evaluation: dict[str, Any] = Field(default_factory=dict)
+
+
+class Candidate(BaseModel):
+    """A production trace proposed as a Golden Dataset candidate."""
+
+    trace: Trace
+    score: float = 0.0
+    signals: dict[str, float] = Field(default_factory=dict)
+    reason: str = ""
