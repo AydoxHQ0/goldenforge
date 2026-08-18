@@ -88,3 +88,49 @@ def test_pipeline_ignores_invalid_traces():
 
 def test_pipeline_handles_empty_input():
     assert build_pipeline([]) == []
+
+def test_pipeline_curates_discovered_candidates():
+    traces = [
+        Trace(
+            id="trace_020",
+            input="Question 1",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+        Trace(
+            id="trace_021",
+            input="Question 2",
+            output="Wrong answer",
+            feedback="positive",
+        ),
+    ]
+
+    result = build_pipeline(traces)
+
+    assert len(result) == 1
+    assert result[0]["id"] == "trace_020"
+def test_pipeline_applies_curation_limit():
+    traces = [
+        Trace(
+            id="trace_022",
+            input="Question 1",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+        Trace(
+            id="trace_023",
+            input="Question 2",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+        Trace(
+            id="trace_024",
+            input="Question 3",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+    ]
+
+    result = build_pipeline(traces)
+
+    assert len(result) == 2
