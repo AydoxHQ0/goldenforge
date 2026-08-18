@@ -2,6 +2,7 @@ import re
 from collections import Counter
 from collections.abc import Iterable
 
+from goldenforge.cluster.basic import cluster_traces
 from goldenforge.models import Candidate, Trace
 from goldenforge.select.scoring import selection_score
 
@@ -67,12 +68,30 @@ def _calculate_novelty(traces: list[Trace]) -> dict[str, float]:
     return novelty
 
 
+def _calculate_diversity(traces: list[Trace]) -> dict[str, float]:
+    """Calculate diversity from the representation of each cluster."""
+
+    clusters = cluster_traces(traces)
+
+    diversity: dict[str, float] = {}
+
+    for cluster in clusters:
+        cluster_size = len(cluster)
+        signal = 1.0 / cluster_size
+
+        for trace in cluster:
+            diversity[trace.id] = signal
+
+    return diversity
+
+
 def discover_candidates(traces: Iterable[Trace]) -> list[Candidate]:
     """Discover production traces that are worth considering as Golden Cases."""
 
     all_traces = list(traces)
     rarity_by_input = _calculate_rarity(all_traces)
     novelty_by_id = _calculate_novelty(all_traces)
+    diversity_by_id = _calculate_diversity(all_traces)
 
     candidates: list[Candidate] = []
 
@@ -83,11 +102,13 @@ def discover_candidates(traces: Iterable[Trace]) -> list[Candidate]:
         score = selection_score(trace)
         rarity = rarity_by_input[trace.input.strip()]
         novelty = novelty_by_id[trace.id]
+        diversity = diversity_by_id[trace.id]
 
         signals = {
             "failure": 1.0,
             "rarity": rarity,
             "novelty": novelty,
+            "diversity": diversity,
             "evaluation": 1.0 if trace.evaluation else 0.0,
             "context": 1.0 if trace.context else 0.0,
             "tools": 1.0 if trace.tools else 0.0,
@@ -101,6 +122,9 @@ def discover_candidates(traces: Iterable[Trace]) -> list[Candidate]:
 
         if novelty >= 0.8:
             reasons.append("high lexical novelty")
+
+        if diversity == 1.0:
+            reasons.append("unique behavioral cluster")
 
         if trace.evaluation:
             reasons.append("evaluation data available")
@@ -128,6 +152,7 @@ def discover_candidates(traces: Iterable[Trace]) -> list[Candidate]:
         key=lambda candidate: (
             candidate.score,
             candidate.signals["rarity"],
+            candidate.signals["diversity"],
         ),
         reverse=True,
     )

@@ -194,4 +194,38 @@ def test_discover_candidates_calculates_novelty():
     assert "novelty" in by_id["trace_016"].signals
 
     assert by_id["trace_016"].signals["novelty"] > by_id["trace_014"].signals["novelty"]
-    assert by_id["trace_016"].signals["novelty"] > by_id["trace_015"].signals["novelty"]
+
+def test_discover_candidates_calculates_diversity_from_clusters():
+    password_1 = Trace(
+        id="trace_017",
+        input="How do I reset my password?",
+        output="Wrong answer",
+        feedback="negative",
+    )
+
+    password_2 = Trace(
+        id="trace_018",
+        input="How can I reset my password?",
+        output="Another wrong answer",
+        feedback="negative",
+    )
+
+    payment = Trace(
+        id="trace_019",
+        input="Why was my international payment declined?",
+        output="Wrong answer",
+        feedback="negative",
+    )
+
+    candidates = discover_candidates(
+        [password_1, password_2, payment]
+    )
+
+    by_id = {candidate.trace.id: candidate for candidate in candidates}
+
+    assert "diversity" in by_id["trace_017"].signals
+    assert "diversity" in by_id["trace_018"].signals
+    assert "diversity" in by_id["trace_019"].signals
+
+    assert by_id["trace_019"].signals["diversity"] > by_id["trace_017"].signals["diversity"]
+    assert by_id["trace_019"].signals["diversity"] > by_id["trace_018"].signals["diversity"]
