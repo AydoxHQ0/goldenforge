@@ -34,8 +34,13 @@ def build_pipeline(
         [candidate.trace for candidate in curated]
     )
 
-
-def build_pipeline_from_jsonl(path: str | Path) -> list[dict]:
+def build_pipeline_from_jsonl(
+    path: str | Path,
+    max_items: int | None = 2,
+) -> list[dict]:
     """Build a Golden Dataset directly from a JSONL trace file."""
 
-    return build_pipeline(load_jsonl(path))
+    return build_pipeline(
+        load_jsonl(path),
+        max_items=max_items,
+    )
