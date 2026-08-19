@@ -11,7 +11,10 @@ from goldenforge.normalize.basic import normalize_trace
 from goldenforge.validate.basic import validate_trace
 
 
-def build_pipeline(traces: Iterable[Trace]) -> list[dict]:
+def build_pipeline(
+    traces: Iterable[Trace],
+    max_items: int | None = 2,
+) -> list[dict]:
     """Run the GoldenForge pipeline on production traces."""
 
     valid_traces: list[Trace] = []
@@ -22,7 +25,10 @@ def build_pipeline(traces: Iterable[Trace]) -> list[dict]:
 
     deduplicated = deduplicate_traces(valid_traces)
     candidates = discover_candidates(deduplicated)
-    curated = curate_candidates(candidates, max_items=2)
+    curated = curate_candidates(
+        candidates,
+        max_items=max_items,
+    )
 
     return build_golden_dataset(
         [candidate.trace for candidate in curated]

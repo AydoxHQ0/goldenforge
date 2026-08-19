@@ -134,3 +134,55 @@ def test_pipeline_applies_curation_limit():
     result = build_pipeline(traces)
 
     assert len(result) == 2
+
+def test_pipeline_accepts_curation_limit():
+    traces = [
+        Trace(
+            id="trace_025",
+            input="Question 1",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+        Trace(
+            id="trace_026",
+            input="Question 2",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+        Trace(
+            id="trace_027",
+            input="Question 3",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+    ]
+
+    result = build_pipeline(traces, max_items=1)
+
+    assert len(result) == 1
+
+def test_pipeline_allows_unlimited_curation():
+    traces = [
+        Trace(
+            id="trace_028",
+            input="Question 1",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+        Trace(
+            id="trace_029",
+            input="Question 2",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+        Trace(
+            id="trace_030",
+            input="Question 3",
+            output="Wrong answer",
+            feedback="negative",
+        ),
+    ]
+
+    result = build_pipeline(traces, max_items=None)
+
+    assert len(result) == 3
