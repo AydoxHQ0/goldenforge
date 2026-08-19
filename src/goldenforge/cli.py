@@ -39,10 +39,18 @@ def build(
         ...,
         help="Path where the Golden Dataset JSON will be written.",
     ),
+    max_items: int | None = typer.Option(
+        2,
+        "--max-items",
+        help="Maximum number of Golden Dataset examples to produce.",
+    ),
 ):
     """Build a Golden Dataset from a JSONL trace file."""
 
-    dataset = build_pipeline_from_jsonl(input_path)
+    dataset = build_pipeline_from_jsonl(
+        input_path,
+        max_items=max_items,
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     export_json(dataset, output_path)
