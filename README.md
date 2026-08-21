@@ -1,69 +1,80 @@
-```markdown
 # GoldenForge
 
-> Transform production AI traces into high-quality Golden Datasets for evaluation.
+> Transform production AI traces into curated Golden Datasets for evaluation.
 
-GoldenForge is an open-source Python toolkit for turning production AI application traces into curated datasets that can be reused for AI evaluation workflows.
+GoldenForge is an open-source Python toolkit for transforming production AI traces into curated Golden Dataset examples.
 
-Production AI applications generate large amounts of interaction data, but raw traces are often noisy, duplicated, incomplete, or difficult to reuse directly for evaluation.
+GoldenForge v0.1 provides a deterministic, local-first data-preparation pipeline for turning JSONL production traces into evaluation-ready Golden Dataset data.
 
-GoldenForge provides a deterministic data-preparation layer between production traces and downstream evaluation systems.
+The current release is intentionally small and framework-agnostic. It does not require an LLM, external AI API, cloud account, or persistent database for its core pipeline.
 
 ## How it works
 
 ```text
-Production AI Traces
-        |
-        v
-      Ingest
-        |
-        v
-     Normalize
+JSONL Production Traces
         |
         v
      Validate
         |
         v
-   Deduplicate
+    Normalize
         |
         v
-    Discovery
-        |
-        +--> Failure
-        +--> Rarity
-        +--> Novelty
-        +--> Clustering
-        +--> Diversity
+Exact Deduplication
         |
         v
-     Curation
+Lexical/Jaccard Clustering
         |
         v
- Build Golden Dataset
+Candidate Discovery
         |
         v
-      Export
+ Candidate Scoring
+        |
+        v
+Deterministic Curation
+        |
+        v
+ Golden Dataset
+        |
+        v
+    JSON Export
 ```
 
-The current pipeline is deterministic and does not require an LLM or external AI API.
+The current v0.1 pipeline is deterministic and local-first.
+
+Human review workflows, semantic similarity, near-duplicate detection, dataset versioning, external integrations, and SaaS capabilities are future scope.
 
 ## Current Features
 
+GoldenForge v0.1 includes:
+
 - JSONL trace ingestion
-- Trace normalization and validation
-- Trace deduplication
-- Production trace discovery
-- Failure, rarity, novelty, and diversity signals
-- Deterministic lexical clustering
-- Candidate curation and ranking
-- Configurable curation limits
+- Trace validation and normalization
+- Exact trace deduplication
+- Deterministic lexical/Jaccard clustering
+- Deterministic candidate discovery
+- Explainable discovery signals:
+  - Failure
+  - Rarity
+  - Novelty
+  - Diversity
+  - Evaluation
+  - Context
+  - Tools
+  - Metadata
+- Deterministic candidate scoring
+- Deterministic candidate curation
+- Configurable `max_items` curation limit
 - Golden Dataset construction
 - JSON export
-- Python API
+- Python pipeline APIs
 - Command-line interface
 - Automated test suite
 
 ## Installation
+
+GoldenForge v0.1 runs locally with Python.
 
 ### From source
 
@@ -76,19 +87,23 @@ python -m venv .venv
 
 On Windows:
 
-```powershell
 .venv\Scripts\activate
-```
 
-Install in editable mode:
+On macOS or Linux:
 
-```bash
+source .venv/bin/activate
+
+Install GoldenForge in editable mode:
+
 python -m pip install -e .
-```
+
+No cloud account, external AI API, or persistent database is required for the v0.1 core pipeline.
+
+---
 
 ## Quick Start
 
-GoldenForge accepts JSONL traces.
+GoldenForge v0.1 accepts JSONL production traces and builds a curated Golden Dataset locally.
 
 Example:
 
@@ -103,17 +118,37 @@ Save the traces as `traces.jsonl`, then run:
 goldenforge build traces.jsonl golden_dataset.json
 ```
 
+The `build` command runs the complete deterministic v0.1 pipeline:
+
+```text
+JSONL
+→ Validation
+→ Normalization
+→ Exact Deduplication
+→ Lexical/Jaccard Clustering
+→ Candidate Discovery and Scoring
+→ Deterministic Curation
+→ Golden Dataset Construction
+→ JSON Export
+```
+
 By default, the pipeline produces at most two curated examples.
 
-You can change the limit:
+You can change the curation limit:
 
 ```bash
 goldenforge build traces.jsonl golden_dataset.json --max-items 10
 ```
 
+The entire pipeline runs locally and does not require an LLM or external AI API.
+
+---
+
 ## CLI
 
-Check the version:
+GoldenForge v0.1 provides a small command-line interface.
+
+Check the installed version:
 
 ```bash
 goldenforge version
@@ -125,26 +160,37 @@ Verify the installation:
 goldenforge hello
 ```
 
-Build a Golden Dataset:
+Build a Golden Dataset from JSONL:
 
 ```bash
 goldenforge build input.jsonl output.json
 ```
 
-Limit the number of examples:
+Limit the number of curated examples:
 
 ```bash
 goldenforge build input.jsonl output.json --max-items 10
 ```
 
-View help:
+View general help:
 
 ```bash
 goldenforge --help
+```
+
+View build command help:
+
+```bash
 goldenforge build --help
 ```
 
+The v0.1 CLI does not provide separate `import`, `analyze`, `review`, or `export` commands. Human review workflows are future scope.
+
+---
+
 ## Python API
+
+GoldenForge v0.1 exposes Python APIs for running the same core pipeline programmatically.
 
 Build from JSONL:
 
@@ -157,7 +203,7 @@ dataset = build_pipeline_from_jsonl(
 )
 ```
 
-Or use the pipeline directly:
+Or use the pipeline directly with normalized traces:
 
 ```python
 from goldenforge.pipeline.basic import build_pipeline
@@ -170,63 +216,92 @@ dataset = build_pipeline(
 
 Use `max_items=None` when no curation limit is desired.
 
+The Python API and CLI use the same underlying deterministic pipeline.
+
+---
+
 ## Pipeline
 
-The current pipeline performs:
+GoldenForge v0.1 runs the following deterministic local pipeline:
 
-1. **Ingest** — Load production traces from JSONL.
-2. **Normalize** — Convert traces into a consistent representation.
-3. **Validate** — Remove invalid or incomplete traces.
-4. **Deduplicate** — Remove duplicate traces.
-5. **Discover** — Identify valuable production traces.
-6. **Cluster** — Group traces using deterministic lexical similarity.
-7. **Score** — Calculate discovery signals such as failure, rarity, novelty, and diversity.
-8. **Curate** — Rank candidates and optionally limit the final candidate set.
-9. **Build** — Construct Golden Dataset examples.
-10. **Export** — Write the resulting dataset to JSON.
+1. **Validate** — Validate incoming JSONL traces.
+2. **Normalize** — Convert valid traces into the internal GoldenForge representation.
+3. **Exact Deduplication** — Remove exact duplicate traces.
+4. **Deterministic Lexical/Jaccard Clustering** — Group traces using the implemented lexical similarity logic.
+5. **Candidate Discovery** — Identify candidate traces using deterministic discovery signals.
+6. **Candidate Scoring** — Calculate the current deterministic `selection_score`.
+7. **Deterministic Curation** — Select candidates according to the current selection logic and optional `max_items` limit.
+8. **Golden Dataset Construction** — Convert selected candidates into Golden Dataset examples.
+9. **JSON Export** — Write the resulting Golden Dataset to JSON.
+
+The v0.1 pipeline does not require an LLM or external AI API.
+
+Semantic similarity, near-duplicate detection, human review workflows, dataset versioning, regression management, and external integrations are future scope.
 
 ## Discovery
 
-GoldenForge currently uses deterministic signals.
+GoldenForge v0.1 uses deterministic and explainable discovery signals to identify production traces that may be valuable as Golden Dataset examples.
 
 ### Failure
 
-Negative user feedback is treated as a strong signal that a trace may represent a useful evaluation case.
+Identifies evidence that an interaction may represent a failure or problematic behavior.
+
+Examples include available failure-related signals such as negative feedback or evaluation evidence.
 
 ### Rarity
 
-Rarity measures how frequently the same normalized input appears in the trace set.
+Measures how uncommon an interaction or behavior is within the processed trace set.
 
 ### Novelty
 
-Novelty estimates how different an input is from other inputs using deterministic lexical similarity.
-
-### Clustering
-
-Traces can be grouped using Jaccard similarity over input tokens.
+Measures how different an interaction is from other traces using the deterministic similarity logic available in v0.1.
 
 ### Diversity
 
-Diversity is derived from cluster representation. Traces belonging to smaller clusters receive a higher diversity signal, helping preserve less-represented behaviors.
+Helps preserve behavioral coverage by favoring candidates that contribute representation from less-represented areas of the dataset.
 
-The discovery system is intentionally deterministic and transparent.
+### Evaluation
+
+Uses available evaluation-related information as a candidate discovery signal.
+
+### Context
+
+Uses available contextual information associated with the trace.
+
+### Tools
+
+Uses available tool-related information associated with the trace.
+
+### Metadata
+
+Uses available metadata as additional candidate discovery information.
+
+### Clustering
+
+GoldenForge v0.1 uses deterministic lexical/Jaccard clustering over trace content to provide grouping and discovery signals.
+
+The discovery system is intentionally deterministic, local-first, and explainable. The resulting signals are used by the current deterministic candidate scoring and curation logic.
 
 ## Curation
 
-Curation converts discovered candidates into a bounded Golden Case set.
+GoldenForge v0.1 performs deterministic candidate curation as the final selection step before Golden Dataset construction.
 
 The current curation layer:
 
-- filters candidates by minimum score,
-- ranks candidates by score,
-- optionally limits the number of candidates,
-- preserves candidate metadata, signals, and explanations.
+- uses the deterministic candidate selection logic,
+- ranks candidates according to the current `selection_score`,
+- applies the optional `max_items` limit,
+- preserves candidate signals and metadata in the resulting dataset.
 
 The default pipeline limit is two examples and can be changed through the Python API or CLI.
 
+The v0.1 curation step does not provide human review, interactive accept/reject workflows, editing, merging, or collaborative approval.
+
+Human curation workflows are future scope.
+
 ## Architecture
 
-The project is organized into focused modules:
+GoldenForge v0.1 is organized into focused Python modules around the deterministic processing pipeline:
 
 ```text
 src/goldenforge/
@@ -245,11 +320,15 @@ src/goldenforge/
 └── models.py
 ```
 
-Each stage has a focused responsibility, making the system easier to test, extend, and integrate.
+Each module has a focused responsibility within the v0.1 pipeline.
+
+The core engine is independent from external model providers, Web UI, and SaaS functionality.
+
+For the full architectural design and future direction, see `docs/ARCHITECTURE.md`.
 
 ## Testing
 
-GoldenForge uses `pytest`.
+GoldenForge uses `pytest` for automated testing.
 
 Run the complete test suite:
 
@@ -257,50 +336,64 @@ Run the complete test suite:
 python -m pytest
 ```
 
-Current development status:
+The test suite covers:
 
-```text
-62 tests passed
-```
+- JSONL ingestion
+- Normalization
+- Validation
+- Deduplication
+- Discovery
+- Clustering
+- Scoring
+- Selection
+- Diversity
+- Curation
+- Pipeline execution
+- JSON export
+- CLI behavior
 
-The tests cover ingestion, normalization, validation, scoring, selection, deduplication, discovery, clustering, diversity, curation, pipeline execution, export, and CLI behavior.
+The current test suite passes successfully.
 
 ## Roadmap
 
-### Current
+### Implemented in v0.1
 
 - [x] JSONL ingestion
-- [x] Trace normalization
 - [x] Trace validation
-- [x] Trace scoring
-- [x] Trace selection
-- [x] Trace deduplication
-- [x] Production trace discovery
-- [x] Deterministic clustering
-- [x] Diversity scoring
-- [x] Candidate curation
-- [x] Configurable curation limit
+- [x] Trace normalization
+- [x] Exact trace deduplication
+- [x] Deterministic lexical/Jaccard clustering
+- [x] Deterministic candidate discovery
+- [x] Explainable discovery signals
+- [x] Deterministic candidate scoring
+- [x] Deterministic candidate curation
+- [x] Configurable `max_items` limit
 - [x] Golden Dataset construction
 - [x] JSON export
-- [x] End-to-end pipeline
+- [x] End-to-end local pipeline
 - [x] CLI
+- [x] Python API
 - [x] Automated tests
 
-### Planned
+### Future
 
-- [ ] Additional trace formats
-- [ ] Langfuse integration
-- [ ] LangSmith integration
-- [ ] Promptfoo integration
+- [ ] Additional input formats
 - [ ] Additional export formats
-- [ ] More advanced quality scoring
-- [ ] Configurable discovery strategies
-- [ ] Dataset inspection and review workflows
+- [ ] Semantic similarity
+- [ ] Near-duplicate detection
+- [ ] Human review workflows
+- [ ] Dataset inspection and management
+- [ ] Dataset versioning
+- [ ] Regression workflows
+- [ ] External provider and observability integrations
 - [ ] Web interface
+- [ ] Open-Core SaaS capabilities
 
 ## Open Source
 
-GoldenForge is released under the MIT License.
+GoldenForge v0.1 is released under the MIT License.
+
+The OSS project is designed to provide a useful local production-to-evaluation data pipeline without requiring a cloud account or paid service.
 
 Contributions are welcome.
 
@@ -308,15 +401,17 @@ Before submitting a pull request:
 
 1. Create a focused change.
 2. Add or update tests.
-3. Run the test suite.
+3. Run the complete test suite.
 4. Update documentation when necessary.
-5. Submit a pull request describing the change.
+5. Keep changes aligned with the project's architecture and scope.
+6. Submit a pull request describing the change.
 
 ## Project Status
 
-GoldenForge is an early-stage open-source project.
+GoldenForge v0.1 is an early-stage open-source release.
 
-The current implementation provides a deterministic pipeline for transforming production AI traces into curated Golden Datasets.
+The current release provides a deterministic, local-first pipeline for transforming production AI traces from JSONL into curated Golden Datasets.
 
-The project is being developed toward becoming a practical data-preparation layer for production AI evaluation workflows.
-```
+The v0.1 core pipeline is implemented, tested, and usable through the CLI and Python API.
+
+Future development will extend GoldenForge toward a broader production-to-evaluation data layer while keeping the core engine local-first and framework-agnostic.

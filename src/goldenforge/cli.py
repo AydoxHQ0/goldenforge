@@ -9,7 +9,7 @@ from goldenforge.pipeline.basic import build_pipeline_from_jsonl
 
 app = typer.Typer(
     name="goldenforge",
-    help="Transform production AI traces into high-quality Golden Datasets.",
+    help="Transform production AI traces into curated Golden Datasets for evaluation.",
 )
 
 console = Console()
